@@ -37,7 +37,7 @@ namespace net.loune.BrowscapNet
 
         public BrowserCapabilityInfo Find(string userAgent)
         {
-            var results = tree.FindAll(userAgent);
+            var results = tree.FindAll(userAgent.ToLower());
             return (BrowserCapabilityInfo)results.OrderBy(r => ((BrowserCapabilityInfo)r.item).Rank).FirstOrDefault().item;
         }
 
@@ -53,7 +53,7 @@ namespace net.loune.BrowscapNet
                 return;
             }
 
-            tree.Add(lastInfo.Pattern, item: lastInfo);
+            tree.Add(lastInfo.Pattern.ToLower(), item: lastInfo);
 
             lastInfo = null;
         }

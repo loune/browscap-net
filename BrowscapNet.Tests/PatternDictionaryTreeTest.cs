@@ -18,7 +18,6 @@ namespace net.loune.BrowscapNet.Tests
         [InlineData("*a*b*c*", "abc")]
         [InlineData("a?c", "a?c")]
         [InlineData("Mozilla/5.0 (*Mac OS X 10?13*) Gecko* Firefox/59.0", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:59.0) Gecko/20100101 Firefox/59.0")]
-        [InlineData("Mozilla/5.0 (*Mac OS X 10?13*) Gecko* Firefox/59.0", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:59.0) Gecko/20100101 Firefox/59.0")]
         public void PatternShouldMatch(string pattern, string input)
         {
             var item = new object();
@@ -42,7 +41,7 @@ namespace net.loune.BrowscapNet.Tests
         {
             PatternDictionaryTree tree = new PatternDictionaryTree();
             tree.Add(pattern);
-            Assert.Equal(null, tree.FindAll(input));
+            Assert.Equal(0, tree.FindAll(input).Count);
         }
 
 
