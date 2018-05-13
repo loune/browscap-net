@@ -11,13 +11,10 @@ namespace net.loune.BrowscapNet
     {
         public bool ExactMatch { get; set; } = false;
         public long Rank { get; set; }
-        //public Dictionary<string, PatternDictionaryTree>[] patternPrefixes;
         public List<(char wildcardChar, int patternLen, Dictionary<string, PatternDictionaryTree> patterns)> patternPrefixes;
-        private int maxLength;
 
-        public PatternDictionaryTree(int maxLength = 200)
+        public PatternDictionaryTree()
         {
-            this.maxLength = maxLength;
         }
 
         private string GetPrefix(string userAgent)
@@ -36,21 +33,11 @@ namespace net.loune.BrowscapNet
         public void Add(string pattern, char wildcardChar = '^', long rank = 0)
         {
             var prefix = GetPrefix(pattern);
-            if (prefix.Length > maxLength)
-            {
-                throw new ArgumentException("pattern length is too long");
-            }
 
             if (patternPrefixes == null)
             {
-                //patternPrefixes = new Dictionary<string, PatternDictionaryTree>[maxLength];
                 patternPrefixes = new List<(char, int, Dictionary<string, PatternDictionaryTree>)>();
             }
-
-            //if (patternPrefixes[prefix.Length] == null)
-            //{
-            //  patternPrefixes[prefix.Length] = new Dictionary<string, PatternDictionaryTree>();
-            //}
 
             var lenDictionary = patternPrefixes.FirstOrDefault(p => p.wildcardChar == wildcardChar && p.patternLen == prefix.Length);
             if (lenDictionary.wildcardChar == default(char))
@@ -61,7 +48,7 @@ namespace net.loune.BrowscapNet
 
             if (!lenDictionary.patterns.TryGetValue(prefix, out PatternDictionaryTree tree))
             {
-                tree = new PatternDictionaryTree(maxLength)
+                tree = new PatternDictionaryTree()
                 {
                     Rank = rank
                 };
@@ -69,7 +56,7 @@ namespace net.loune.BrowscapNet
                 lenDictionary.patterns[prefix] = tree;
             }
 
-            if (pattern.Length != prefix.Length /*&& !(pattern[prefix.Length] == '?' && pattern.Length == 1)*/)
+            if (pattern.Length != prefix.Length)
             {
                 tree.Add(pattern.Substring(prefix.Length + 1), pattern[prefix.Length], rank);
             }
@@ -80,67 +67,127 @@ namespace net.loune.BrowscapNet
             }
         }
 
-        public List<(char wildcardChar, long rank, string part)> Find(string input)
+        public (char wildcardChar, long rank, string part) FindPatternIdentity(string pattern)
+        {
+            var list = Find(pattern, FindMode.SearchIdentityStart);
+            return list != null ? list.FirstOrDefault() : default((char wildcardChar, long rank, string part));
+        }
+
+        public List<(char wildcardChar, long rank, string part)> FindAll(string input)
+        {
+            return Find(input);
+        }
+
+        private List<(char wildcardChar, long rank, string part)> Find(string input, FindMode mode = FindMode.None)
         {
             if (patternPrefixes == null)
             {
                 return null;
             }
 
+            bool findIdenity = mode == FindMode.SearchIdentity || mode == FindMode.SearchIdentityStart;
+            string identityPrefix = null;
+            if (findIdenity)
+            {
+                identityPrefix = GetPrefix(mode == FindMode.SearchIdentityStart ? input : input.Substring(1));
+            }
+
             var inputLen = input.Length;
             List<(char, long, string)> results = null;
-            //for (int i = input.Length; i >= 0; i--)
             foreach (var lenDictionary in patternPrefixes)
             {
-                var (wildcardChar, i, patterns) = lenDictionary;
-                if (i > inputLen) {
+                var (wildcardChar, patternLen, patterns) = lenDictionary;
+                if (patternLen > inputLen)
+                {
+                    // our pattern is bigger than the input, won't match
                     continue;
                 }
-                //if (patternPrefixes[i] != null)
+
+                if (findIdenity && (patternLen != identityPrefix.Length || (mode != FindMode.SearchIdentityStart && wildcardChar != input[0])))
                 {
-                    bool beginningCharWildcard = wildcardChar == '^';
-                    bool singleCharWildcard = wildcardChar == '?';
-                    var max = singleCharWildcard && i < inputLen ? (1 + i) : inputLen;
-                    if (beginningCharWildcard)
+                    // if finding identity, we are only interested in an exact part in the exact length
+                    continue;
+                }
+
+                bool beginningCharWildcard = wildcardChar == '^';
+                bool singleCharWildcard = wildcardChar == '?' || (findIdenity && !beginningCharWildcard);
+                int startIndex = 0;
+                var max = inputLen;
+                if (singleCharWildcard)
+                {
+                    // ? matches one char exactly - only search by first character of input
+                    startIndex = 1;
+                    max = 1 + patternLen;
+                    if (max > inputLen)
                     {
-                        max = i;
+                        // our pattern is bigger than the input, won't match
+                        continue;
                     }
+                }
+                else if (beginningCharWildcard)
+                {
+                    // we are at the beginning of the input, we should only match from the start of the input
+                    max = patternLen;
+                }
 
-                    for (int j = singleCharWildcard ? 1 : 0; j + i <= max; j++)
+                for (; startIndex + patternLen <= max; startIndex++)
+                {
+                    var prefix = patternLen == 0 ? string.Empty : input.Substring(startIndex, patternLen);
+                    Debug.Assert(prefix.Length == patternLen);
+
+                    if (patterns.TryGetValue(prefix, out PatternDictionaryTree tree))
                     {
-                        var prefix = i == 0 ? string.Empty : input.Substring(j, i);
-                        Debug.Assert(prefix.Length == i);
-
-                        if (patterns.TryGetValue(prefix, out PatternDictionaryTree tree))
+                        var remaining = input.Substring(startIndex + patternLen);
+                        if ((remaining.Length == 0 && tree.ExactMatch) /* we've reached "*abc"  */ ||
+                            (prefix.Length == 0 && tree.patternPrefixes == null && !singleCharWildcard) /* we've reached "*abc*" */ )
                         {
-                            var remaining = input.Substring(j + i);
-                            if ((remaining.Length == 0 && tree.ExactMatch) /* we've reached "*abc"  */ ||
-                                (prefix.Length == 0 && tree.patternPrefixes == null && !singleCharWildcard) /* we've reached "*abc*" */ )
+                            if (results == null)
+                            {
+                                results = new List<(char, long, string)>();
+                            }
+
+                            results.Add((wildcardChar, tree.Rank, prefix));
+
+                            if (findIdenity)
+                            {
+                                return results;
+                            }
+
+                            break;
+                        }
+                        else
+                        {
+                            var matches = tree.Find(remaining, findIdenity ? FindMode.SearchIdentity : mode);
+
+                            if (matches != null)
                             {
                                 if (results == null)
-                                    results = new List<(char, long, string)>();
-                                results.Add((wildcardChar, tree.Rank, prefix));
-                                break;
-                                //return results;
-                            }
-                            else
-                            {
-                                var matches = tree.Find(remaining);
-
-                                if (matches != null)
                                 {
-                                    if (results == null)
-                                        results = new List<(char, long, string)>();
-                                    results.AddRange(matches.Select(m => (wildcardChar, m.rank, prefix + m.wildcardChar + m.part)));
-                                    //return results;
+                                    results = new List<(char, long, string)>();
+                                }
+
+                                results.AddRange(matches.Select(m => (wildcardChar, m.rank, prefix + m.wildcardChar + m.part)));
+
+                                if (findIdenity)
+                                {
+                                    return results;
                                 }
                             }
                         }
                     }
+
                 }
             }
 
             return results;
+        }
+
+        private enum FindMode
+        {
+            None,
+            SearchIdentityStart,
+            SearchIdentity,
+            SingleResult
         }
     }
 }

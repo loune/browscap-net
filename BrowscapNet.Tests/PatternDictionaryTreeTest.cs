@@ -16,13 +16,14 @@ namespace net.loune.BrowscapNet.Tests
         [InlineData("abc*", "abc")]
         [InlineData("*abc", "abc")]
         [InlineData("*a*b*c*", "abc")]
+        [InlineData("a?c", "a?c")]
         [InlineData("Mozilla/5.0 (*Mac OS X 10?13*) Gecko* Firefox/59.0", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:59.0) Gecko/20100101 Firefox/59.0")]
         [InlineData("Mozilla/5.0 (*Mac OS X 10?13*) Gecko* Firefox/59.0", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:59.0) Gecko/20100101 Firefox/59.0")]
         public void PatternShouldMatch(string pattern, string input)
         {
             PatternDictionaryTree tree = new PatternDictionaryTree();
             tree.Add(pattern);
-            Assert.Equal(pattern, tree.Find(input).First().part);
+            Assert.Equal(pattern, tree.FindAll(input).First().part);
         }
 
         [Theory]
@@ -38,7 +39,18 @@ namespace net.loune.BrowscapNet.Tests
         {
             PatternDictionaryTree tree = new PatternDictionaryTree();
             tree.Add(pattern);
-            Assert.Equal(null, tree.Find(input));
+            Assert.Equal(null, tree.FindAll(input));
+        }
+
+
+        [Theory]
+        [InlineData("a?c", "a?c")]
+        [InlineData("Mozilla/5.0 (* Mac OS X 10?12*) Gecko* Firefox/59.0*", "Mozilla/5.0 (* Mac OS X 10?12*) Gecko* Firefox/59.0*")]
+        public void PatternShouldFindIdentity(string pattern, string input)
+        {
+            PatternDictionaryTree tree = new PatternDictionaryTree();
+            tree.Add(pattern);
+            Assert.Equal(pattern, tree.FindPatternIdentity(input).part);
         }
     }
 }

@@ -3,5 +3,12 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>net.loune.BrowscapNet</RootNamespace>
+    <PackOnBuild>true</PackOnBuild>
+    <PackageId>net.loune.BrowscapNet</PackageId>
+    <Authors>Loune Lam</Authors>
+    <Description>Detect browser capabilities based on user agent string. A .NET Standard 2.0 implementation of browscap</Description>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="NuGet.Build.Packaging" Version="0.2.0" />
+  </ItemGroup>
 </Project>
