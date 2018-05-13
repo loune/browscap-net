@@ -21,9 +21,12 @@ namespace net.loune.BrowscapNet.Tests
         [InlineData("Mozilla/5.0 (*Mac OS X 10?13*) Gecko* Firefox/59.0", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:59.0) Gecko/20100101 Firefox/59.0")]
         public void PatternShouldMatch(string pattern, string input)
         {
+            var item = new object();
             PatternDictionaryTree tree = new PatternDictionaryTree();
-            tree.Add(pattern);
-            Assert.Equal(pattern, tree.FindAll(input).First().part);
+            tree.Add(pattern, item);
+            var result = tree.FindAll(input).First();
+            Assert.Equal(pattern, result.pattern);
+            Assert.Equal(item, result.item);
         }
 
         [Theory]
@@ -48,9 +51,12 @@ namespace net.loune.BrowscapNet.Tests
         [InlineData("Mozilla/5.0 (* Mac OS X 10?12*) Gecko* Firefox/59.0*", "Mozilla/5.0 (* Mac OS X 10?12*) Gecko* Firefox/59.0*")]
         public void PatternShouldFindIdentity(string pattern, string input)
         {
+            var item = new object();
             PatternDictionaryTree tree = new PatternDictionaryTree();
-            tree.Add(pattern);
-            Assert.Equal(pattern, tree.FindPatternIdentity(input).part);
+            tree.Add(pattern, item);
+            var result = tree.FindPatternIdentity(input);
+            Assert.Equal(pattern, result.pattern);
+            Assert.Equal(item, result.item);
         }
     }
 }

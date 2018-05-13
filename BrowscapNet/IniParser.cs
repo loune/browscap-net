@@ -45,10 +45,12 @@ namespace net.loune.BrowscapNet
                         {
                             var key = line.Substring(0, eqi);
                             var value = line.Substring(eqi + 1);
-                            handler.KeyValue(key, value);
+                            handler.KeyValue(key, value, lineNumber);
                         }
                     }
                 }
+
+                handler.EndFile(lineNumber);
             }
         }
     }
@@ -56,6 +58,7 @@ namespace net.loune.BrowscapNet
     public interface IIniHandler
     {
         void StartSection(string section, long lineNumber);
-        void KeyValue(string key, string value);
+        void KeyValue(string key, string value, long lineNumber);
+        void EndFile(long lineNumber);
     }
 }

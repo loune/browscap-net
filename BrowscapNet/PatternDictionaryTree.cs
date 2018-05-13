@@ -10,7 +10,7 @@ namespace net.loune.BrowscapNet
     public class PatternDictionaryTree
     {
         public bool ExactMatch { get; set; } = false;
-        public long Rank { get; set; }
+        public object Item { get; set; }
         public List<(char wildcardChar, int patternLen, Dictionary<string, PatternDictionaryTree> patterns)> patternPrefixes;
 
         public PatternDictionaryTree()
@@ -30,7 +30,7 @@ namespace net.loune.BrowscapNet
             return userAgent;
         }
 
-        public void Add(string pattern, char wildcardChar = '^', long rank = 0)
+        public void Add(string pattern, object item = null, char wildcardChar = '^')
         {
             var prefix = GetPrefix(pattern);
 
@@ -50,7 +50,7 @@ namespace net.loune.BrowscapNet
             {
                 tree = new PatternDictionaryTree()
                 {
-                    Rank = rank
+                    Item = item
                 };
 
                 lenDictionary.patterns[prefix] = tree;
@@ -58,27 +58,28 @@ namespace net.loune.BrowscapNet
 
             if (pattern.Length != prefix.Length)
             {
-                tree.Add(pattern.Substring(prefix.Length + 1), pattern[prefix.Length], rank);
+                tree.Add(pattern.Substring(prefix.Length + 1), item, pattern[prefix.Length]);
             }
             else
             {
                 tree.ExactMatch = true;
-                tree.Rank = rank;
+                tree.Item = item;
             }
         }
 
-        public (char wildcardChar, long rank, string part) FindPatternIdentity(string pattern)
+        public (string pattern, object item) FindPatternIdentity(string pattern)
         {
             var list = Find(pattern, FindMode.SearchIdentityStart);
-            return list != null ? list.FirstOrDefault() : default((char wildcardChar, long rank, string part));
+            return list != null ? (list.First().part, list.First().item) : default((string part, object item));
         }
 
-        public List<(char wildcardChar, long rank, string part)> FindAll(string input)
+        public List<(string pattern, object item)> FindAll(string input)
         {
-            return Find(input);
+            var list = Find(input);
+            return list != null ? list.Select(((char wildcardChar, object item, string part) m) => (m.part, m.item)).ToList() : new List<(string part, object item)>();
         }
 
-        private List<(char wildcardChar, long rank, string part)> Find(string input, FindMode mode = FindMode.None)
+        private List<(char wildcardChar, object item, string part)> Find(string input, FindMode mode = FindMode.None)
         {
             if (patternPrefixes == null)
             {
@@ -93,7 +94,7 @@ namespace net.loune.BrowscapNet
             }
 
             var inputLen = input.Length;
-            List<(char, long, string)> results = null;
+            List<(char, object, string)> results = null;
             foreach (var lenDictionary in patternPrefixes)
             {
                 var (wildcardChar, patternLen, patterns) = lenDictionary;
@@ -106,6 +107,7 @@ namespace net.loune.BrowscapNet
                 if (findIdenity && (patternLen != identityPrefix.Length || (mode != FindMode.SearchIdentityStart && wildcardChar != input[0])))
                 {
                     // if finding identity, we are only interested in an exact part in the exact length
+                    // and make sure that first char matches the wildcardChar
                     continue;
                 }
 
@@ -143,10 +145,10 @@ namespace net.loune.BrowscapNet
                         {
                             if (results == null)
                             {
-                                results = new List<(char, long, string)>();
+                                results = new List<(char, object, string)>();
                             }
 
-                            results.Add((wildcardChar, tree.Rank, prefix));
+                            results.Add((wildcardChar, tree.Item, prefix));
 
                             if (findIdenity)
                             {
@@ -163,10 +165,10 @@ namespace net.loune.BrowscapNet
                             {
                                 if (results == null)
                                 {
-                                    results = new List<(char, long, string)>();
+                                    results = new List<(char, object, string)>();
                                 }
 
-                                results.AddRange(matches.Select(m => (wildcardChar, m.rank, prefix + m.wildcardChar + m.part)));
+                                results.AddRange(matches.Select(m => (wildcardChar, m.item, prefix + m.wildcardChar + m.part)));
 
                                 if (findIdenity)
                                 {
