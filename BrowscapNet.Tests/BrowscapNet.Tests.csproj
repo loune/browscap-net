@@ -4,7 +4,7 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
 
     <IsPackable>false</IsPackable>
-    <RootNamespace>net.loune.BrowscapNet.Tests</RootNamespace>
+    <RootNamespace>BrowscapNet.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,5 +15,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BrowscapNet\BrowscapNet.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="testdata\full_asp_browscap.ini.gz" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="testdata\full_asp_browscap.ini.gz">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 </Project>

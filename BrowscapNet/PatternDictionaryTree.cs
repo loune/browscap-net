@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace net.loune.BrowscapNet
+namespace BrowscapNet
 {
     public class PatternDictionaryTree
     {

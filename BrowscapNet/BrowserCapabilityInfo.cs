@@ -1,5 +1,6 @@
 ﻿using System;
-namespace net.loune.BrowscapNet
+
+namespace BrowscapNet
 {
     public class BrowserCapabilityInfo
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace net.loune.BrowscapNet
+namespace BrowscapNet
 {
     public class IniParser
     {

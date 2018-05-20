@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace net.loune.BrowscapNet
+namespace BrowscapNet
 {
-    public class TreeUserAgentMatcher : IIniHandler
+    public class TreeUserAgentMatcher : IUserAgentMatcher, IIniHandler
     {
         public PatternDictionaryTree tree = new PatternDictionaryTree();
 
@@ -135,15 +135,13 @@ namespace net.loune.BrowscapNet
             }*/
         }
 
-        public string GetMatch(string userAgent)
+        public string GetMatches(string userAgent)
         {
             var results = tree.FindAll(userAgent);
             return string.Join("\n", results.Select(m => m.pattern + " - " + m.item));
-            //return tree.FindPatternIdentity(userAgent).part;
-            //return "NA";
         }
 
-        public BrowserCapabilityInfo Find(string userAgent)
+        public BrowserCapabilityInfo FindMatch(string userAgent)
         {
             var results = tree.FindAll(userAgent.ToLower());
             if (results.Count == 0)
