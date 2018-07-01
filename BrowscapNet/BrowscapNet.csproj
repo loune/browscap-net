@@ -6,7 +6,9 @@
     <PackOnBuild>true</PackOnBuild>
     <PackageId>BrowscapNet</PackageId>
     <Authors>Loune Lam</Authors>
-    <Description>Detect browser capabilities based on user agent string. A .NET Standard 2.0 implementation of browscap</Description>
+    <Title>BrowscapNET</Title>
+    <Description>Detect browser capabilities based on user agent string. A .NET Standard 2.0 library to read browscap.ini.</Description>
+    <Summary>Detect browser capabilities based on user agent string. A .NET Standard 2.0 library to read browscap.ini.</Summary>
     <Copyright>Copyright (C) 2018 Loune Lam</Copyright>
     <PackageProjectUrl>https://github.com/loune/browscap-net</PackageProjectUrl>
     <RepositoryUrl>https://github.com/loune/browscap-net.git</RepositoryUrl>

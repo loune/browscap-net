@@ -1,6 +1,6 @@
-# BrowscapNet - User Agent Browser Capabilities Detection for .NET Core 2.0+
+# BrowscapNET - User Agent Browser Capabilities Detection for .NET Core 2.0+
 
-BrowscapNet is a .NET Standard 2.0 library that detects browser capabilities such as browser name, version and platform based on a supplied user agent string. It has a fast implementation of browser capbilities detection using `full_asp_browscap.ini` from [browscap.org](http://browscap.org). Searching a database of 150,000 user agent patterns from [full_asp_browscap.ini](http://browscap.org/stream?q=Full_BrowsCapINI) takes ~5ms on Macbook Pro 2017 per query uncached.
+BrowscapNET is a .NET Standard 2.0 library that detects browser capabilities such as browser name, version and platform based on a supplied user agent string. It has a fast implementation of browser capbilities detection using `full_asp_browscap.ini` from [browscap.org](http://browscap.org). Searching a database of 150,000 user agent patterns from [full_asp_browscap.ini](http://browscap.org/stream?q=Full_BrowsCapINI) takes ~5ms on Macbook Pro 2017 per query uncached.
 
 This library was primarily developed to quickly parse user agents from log files. Existing user agent parser solutions were either unreliable, didn't provide enough details, or used regular expressions that would take up to 1 second to return a result. This solution doesn't use regular expressions. Instead it constructs a pattern tree from all the patterns, allowing it to quickly seek a matching pattern with the help of a hash table.
 
@@ -14,7 +14,7 @@ It is recommended that you cache the results of `Find` for better performance.
 
 ### Example
 
-```
+```csharp
 BrowserCapabilitiesService browserCapabilitiesService = new BrowserCapabilitiesService();
 browserCapabilitiesService.LoadBrowscap("full_asp_browscap.ini");
 var info = browserCapabilitiesService.Find("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:59.0) Gecko/20100101 Firefox/59.0");
