@@ -3,6 +3,9 @@ using System.IO;
 
 namespace BrowscapNet
 {
+    /// <summary>
+    /// A parser for an ini file. Provide an IIniHandler implementation.
+    /// </summary>
     public class IniParser
     {
         private IIniHandler handler;
@@ -12,6 +15,10 @@ namespace BrowscapNet
             this.handler = handler;
         }
 
+        /// <summary>
+        /// Parse the specified ini file stream.
+        /// </summary>
+        /// <param name="stream">The ini file stream.</param>
         public void Parse(Stream stream)
         {
             using (StreamReader sr = new StreamReader(stream))
@@ -19,6 +26,7 @@ namespace BrowscapNet
                 long lineNumber = 0;
                 while (!sr.EndOfStream)
                 {
+                    bool cancelParsing = false;
                     lineNumber++;
                     string line = sr.ReadLine();
                     if (line.Length == 0)
@@ -35,7 +43,7 @@ namespace BrowscapNet
                     {
                         // section
                         string name = line.Substring(1, line.IndexOf(']') - 1);
-                        handler.StartSection(name, lineNumber);
+                        handler.StartSection(name, lineNumber, out cancelParsing);
                     }
                     else
                     {
@@ -45,8 +53,13 @@ namespace BrowscapNet
                         {
                             var key = line.Substring(0, eqi);
                             var value = line.Substring(eqi + 1);
-                            handler.KeyValue(key, value, lineNumber);
+                            handler.KeyValue(key, value, lineNumber, out cancelParsing);
                         }
+                    }
+
+                    if (cancelParsing)
+                    {
+                        return;
                     }
                 }
 
@@ -55,10 +68,32 @@ namespace BrowscapNet
         }
     }
 
+    /// <summary>
+    /// Ini handler.
+    /// </summary>
     public interface IIniHandler
     {
-        void StartSection(string section, long lineNumber);
-        void KeyValue(string key, string value, long lineNumber);
+        /// <summary>
+        /// Called when IniParser encounters a new section.
+        /// </summary>
+        /// <param name="section">The name of the section.</param>
+        /// <param name="lineNumber">The line number of the section.</param>
+        /// <param name="cancelParsing">If set to <c>true</c>, cancel the parsing operation.</param>
+        void StartSection(string section, long lineNumber, out bool cancelParsing);
+
+        /// <summary>
+        /// Called when IniParser encounters each key value pair.
+        /// </summary>
+        /// <param name="key">Key name.</param>
+        /// <param name="value">Value.</param>
+        /// <param name="lineNumber">The line number of the key value pair.</param>
+        /// <param name="cancelParsing">If set to <c>true</c>, cancel the parsing operation.</param>
+        void KeyValue(string key, string value, long lineNumber, out bool cancelParsing);
+
+        /// <summary>
+        /// Called when IniParser encounters the end of the file.
+        /// </summary>
+        /// <param name="lineNumber">The line number of the last line.</param>
         void EndFile(long lineNumber);
     }
 }

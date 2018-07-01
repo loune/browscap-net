@@ -2,6 +2,9 @@
 
 namespace BrowscapNet
 {
+    /// <summary>
+    /// Browser capabilities.
+    /// </summary>
     public class BrowserCapabilityInfo
     {
         public string Pattern { get; internal set; }
@@ -56,6 +59,10 @@ namespace BrowscapNet
         public string RenderingengineDescription { get; internal set; }
         public string RenderingengineMaker { get; internal set; }
 
+        /// <summary>
+        /// Clone this browser capabilities info.
+        /// </summary>
+        /// <returns>The clone.</returns>
         public BrowserCapabilityInfo Clone()
         {
             return (BrowserCapabilityInfo)this.MemberwiseClone();

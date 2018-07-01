@@ -6,83 +6,55 @@ namespace BrowscapNet
 {
     public class TreeUserAgentMatcher : IUserAgentMatcher, IIniHandler
     {
-        public PatternDictionaryTree tree = new PatternDictionaryTree();
+        private PatternDictionaryTree tree = new PatternDictionaryTree();
 
-        public BrowserCapabilityInfo lastInfo;
+        private BrowserCapabilityInfo lastInfo;
 
-        private static Dictionary<string, Action<BrowserCapabilityInfo, string>> propSetters = new Dictionary<string, Action<BrowserCapabilityInfo, string>>
-        {
-            ["parent"] = (info, value) => info.Parent = value,
-            ["comment"] = (info, value) => info.Comment = value,
-            ["browser"] = (info, value) => info.Browser = value,
-            ["browser_type"] = (info, value) => info.BrowserType = value,
-            ["browser_bits"] = (info, value) => info.BrowserBits = value,
-            ["browser_maker"] = (info, value) => info.BrowserMaker = value,
-            ["browser_modus"] = (info, value) => info.BrowserModus = value,
-            ["version"] = (info, value) => info.Version = value,
-            ["majorver"] = (info, value) => info.Majorver = value,
-            ["minorver"] = (info, value) => info.Minorver = value,
-            ["platform"] = (info, value) => info.Platform = value,
-            ["platform_version"] = (info, value) => info.PlatformVersion = value,
-            ["platform_description"] = (info, value) => info.PlatformDescription = value,
-            ["platform_bits"] = (info, value) => info.PlatformBits = value,
-            ["platform_maker"] = (info, value) => info.PlatformMaker = value,
-            ["alpha"] = (info, value) => info.Alpha = value == "true",
-            ["beta"] = (info, value) => info.Beta = value == "true",
-            ["win16"] = (info, value) => info.Win16 = value == "true",
-            ["win32"] = (info, value) => info.Win32 = value == "true",
-            ["win64"] = (info, value) => info.Win64 = value == "true",
-            ["frames"] = (info, value) => info.Frames = value == "true",
-            ["iframes"] = (info, value) => info.Iframes = value == "true",
-            ["tables"] = (info, value) => info.Tables = value == "true",
-            ["cookies"] = (info, value) => info.Cookies = value == "true",
-            ["backgroundsounds"] = (info, value) => info.Backgroundsounds = value == "true",
-            ["javascript"] = (info, value) => info.Javascript = value == "true",
-            ["vbscript"] = (info, value) => info.Vbscript = value == "true",
-            ["javaapplets"] = (info, value) => info.Javaapplets = value == "true",
-            ["activexcontrols"] = (info, value) => info.Activexcontrols = value == "true",
-            ["ismobiledevice"] = (info, value) => info.Ismobiledevice = value == "true",
-            ["istablet"] = (info, value) => info.Istablet = value == "true",
-            ["issyndicationreader"] = (info, value) => info.Issyndicationreader = value == "true",
-            ["crawler"] = (info, value) => info.Crawler = value == "true",
-            ["isfake"] = (info, value) => info.Isfake = value == "true",
-            ["isanonymized"] = (info, value) => info.Isanonymized = value == "true",
-            ["ismodified"] = (info, value) => info.Ismodified = value == "true",
-            ["cssversion"] = (info, value) => info.Cssversion = value,
-            ["aolversion"] = (info, value) => info.Aolversion = value,
-            ["device_name"] = (info, value) => info.DeviceName = value,
-            ["device_maker"] = (info, value) => info.DeviceMaker = value,
-            ["device_type"] = (info, value) => info.DeviceType = value,
-            ["device_pointing_method"] = (info, value) => info.DevicePointingMethod = value,
-            ["device_code_name"] = (info, value) => info.DeviceCodeName = value,
-            ["device_brand_name"] = (info, value) => info.DeviceBrandName = value,
-            ["renderingengine_name"] = (info, value) => info.RenderingengineName = value,
-            ["renderingengine_version"] = (info, value) => info.RenderingengineVersion = value,
-            ["renderingengine_description"] = (info, value) => info.RenderingengineDescription = value,
-            ["renderingengine_maker"] = (info, value) => info.RenderingengineMaker = value
-        };
+        public string BrowscapVersion { get; private set; }
+        public DateTimeOffset BrowscapReleased { get; private set; }
 
         public TreeUserAgentMatcher()
         {
         }
 
-        public void StartSection(string section, long lineNumber)
+        public void StartSection(string section, long lineNumber, out bool cancelParsing)
         {
+            cancelParsing = false;
             AddLastSection();
 
-            lastInfo = new BrowserCapabilityInfo();
-            lastInfo.Pattern = section;
-            lastInfo.Rank = lineNumber;
+            if (section == "GJK_Browscap_Version")
+            {
+                lastInfo = null;
+            }
+            else
+            {
+                lastInfo = new BrowserCapabilityInfo();
+                lastInfo.Pattern = section;
+                lastInfo.Rank = lineNumber;
+            }
         }
 
-        public void KeyValue(string key, string value, long lineNumber)
+        public void KeyValue(string key, string value, long lineNumber, out bool cancelParsing)
         {
-            if (propSetters.TryGetValue(key.ToLower(), out var f))
+            cancelParsing = false;
+            if (lastInfo == null)
             {
-                f(lastInfo, value);
+                switch (key.ToLower())
+                {
+                    case "version": BrowscapVersion = value; break;
+                    case "released": BrowscapReleased = DateTimeOffset.Parse(value); break;
+                    case "format":
+                        if (value != "asp")
+                        {
+                            throw new ArgumentException($"browscap.ini format expected to be asp, got {value} instead.");
+                        }
+                        break;
+                }
+
+                return;
             }
 
-            /*switch (key.ToLower())
+            switch (key.ToLower())
             {
                 case "parent": lastInfo.Parent = value; break;
                 case "comment": lastInfo.Comment = value; break;
@@ -132,7 +104,7 @@ namespace BrowscapNet
                 case "renderingengine_version": lastInfo.RenderingengineVersion = value; break;
                 case "renderingengine_description": lastInfo.RenderingengineDescription = value; break;
                 case "renderingengine_maker": lastInfo.RenderingengineMaker = value; break;
-            }*/
+            }
         }
 
         public string GetMatches(string userAgent)
