@@ -14,12 +14,10 @@
     <RepositoryUrl>https://github.com/loune/browscap-net.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseUrl>https://github.com/loune/browscap-net/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageVersion>1.0.3</PackageVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType></DebugType>
     <DocumentationFile>bin\Release\netstandard2.0\BrowscapNet.xml</DocumentationFile>
   </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="NuGet.Build.Packaging" Version="0.2.0" />
-  </ItemGroup>
 </Project>
