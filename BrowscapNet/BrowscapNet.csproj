@@ -15,7 +15,15 @@
     <RepositoryType>git</RepositoryType>
     <PackageLicenseUrl>https://github.com/loune/browscap-net/blob/master/LICENSE</PackageLicenseUrl>
     <PackageVersion>1.0.3</PackageVersion>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+  </ItemGroup>
+
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType></DebugType>
     <DocumentationFile>bin\Release\netstandard2.0\BrowscapNet.xml</DocumentationFile>
