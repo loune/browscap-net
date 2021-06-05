@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.IO.Compression;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace BrowscapNet
 {
@@ -10,6 +12,7 @@ namespace BrowscapNet
     public class BrowserCapabilitiesService : IBrowserCapabilitiesService
     {
         private TreeUserAgentMatcher matcher;
+        private SemaphoreSlim matcherLock = new SemaphoreSlim(1, 1);
 
         /// <summary>
         /// Gets the browscap.ini version.
@@ -35,7 +38,7 @@ namespace BrowscapNet
         /// Loads browscap.ini from filename. Can be gzipped.
         /// </summary>
         /// <param name="fileName">File path of full_asp_browscap.ini.</param>
-        public void LoadBrowscap(string fileName)
+        public async Task LoadBrowscap(string fileName)
         {
             using (var fs = new FileStream(fileName, FileMode.Open, FileAccess.Read))
             {
@@ -49,12 +52,12 @@ namespace BrowscapNet
                 {
                     using (var gzs = new GZipStream(fs, CompressionMode.Decompress))
                     {
-                        LoadBrowscap(gzs);
+                        await LoadBrowscap(gzs);
                     }
                 }
                 else
                 {
-                    LoadBrowscap(fs);
+                    await LoadBrowscap(fs);
                 }
             }
         }
@@ -63,11 +66,16 @@ namespace BrowscapNet
         /// Load browscap.ini from a stream.
         /// </summary>
         /// <param name="stream">Stream.</param>
-        public void LoadBrowscap(Stream stream)
+        public async Task LoadBrowscap(Stream stream)
         {
-            lock (matcher)
+            await matcherLock.WaitAsync();
+            try
             {
-                new IniParser(matcher).Parse(stream);
+                await new IniParser(matcher).ParseAsync(stream);
+            }
+            finally
+            {
+                matcherLock.Release();
             }
         }
 

@@ -10,7 +10,7 @@ namespace BrowscapNet.Tests
         public BrowserCapabilitiesServiceTest()
         {
             browserCapabilitiesService = new BrowserCapabilitiesService();
-            browserCapabilitiesService.LoadBrowscap("testdata/full_asp_browscap.ini.gz");
+            browserCapabilitiesService.LoadBrowscap("testdata/full_asp_browscap.ini.gz").Wait();
         }
 
         [Theory]
@@ -23,8 +23,8 @@ namespace BrowscapNet.Tests
         {
             var info = browserCapabilitiesService.Find(userAgent);
 
-            Assert.Equal(browserCapabilitiesService.BrowscapVersion, "6000029");
-            Assert.Equal(browserCapabilitiesService.BrowscapReleased, new DateTimeOffset(2018, 05, 22, 15, 48, 31, TimeSpan.FromSeconds(0)));
+            Assert.Equal("6000029", browserCapabilitiesService.BrowscapVersion);
+            Assert.Equal(new DateTimeOffset(2018, 05, 22, 15, 48, 31, TimeSpan.FromSeconds(0)), browserCapabilitiesService.BrowscapReleased);
 
             Assert.Equal(pattern.ToLower(), info.Pattern.ToLower());
             Assert.Equal(browser, info.Browser);
